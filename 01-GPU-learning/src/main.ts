@@ -1,89 +1,68 @@
-async function initWebGPU() {
+// Create top-level asynchronous function
+  async function runExample(){
+    var msg_array =["<h1>ObjectCreation</h1>"];
 
-    // 1. Comprobar soporte WebGPU
-    if (!navigator.gpu) {
-        throw new Error("WebGPU is not supported.");
+    // Check if WebGPU is supported
+    if(!navigator.gpu){
+      throw new Error("WebGPU not supported");
+    } else{
+      msg_array.push("WebGPU supported");
     }
 
-    // 2. Solicitar adaptador
+    // Access the GPUAdapter
     const adapter = await navigator.gpu.requestAdapter();
-
-    if (!adapter) {
-        throw new Error("No GPUAdapter found.");
+    if(!adapter){
+      throw new Error ("No GPUAdapter found");
+    } else{
+      msg_array.push("GPUAdapter found");
     }
 
-    // 3. Crear dispositivo GPU
+    // Access the GPU
     const device = await adapter.requestDevice();
-
-    // 4. Obtener canvas
-    const canvas = document.querySelector<HTMLCanvasElement>("canvas");
-
-    if (!canvas) {
-        throw new Error("Canvas not found.");
+    if(!device){
+      throw new Error ("Failed to create a GPUDevice");
+    } else{
+      msg_array.push("GPUDevice created");
     }
 
-    // 5. Obtener contexto WebGPU
+    // Create a command encoder
+    const encoder = device.createCommandEncoder();
+    if(!encoder){
+      throw new Error ("Failed to create a GPUCommandEncoder");
+    } else{
+      msg_array.push("GPUCommandEncoder created");
+    }
+
+    // Access the canvas
+    const canvas = document.querySelector<HTMLCanvasElement>( "canvas" );
+    if(!canvas){
+      throw new Error ("Could not access canvas in page");
+    } else {
+      msg_array.push("Accessed canvas in page");
+    }
+
+    // Obtain a WebGPU context for the cnavas
     const context = canvas.getContext("webgpu");
-
-    if (!context) {
-        throw new Error("WebGPU context not found.");
+    if(!context){
+      throw new Error ("Could not obtain WebGPU context for canvas");
+    } else {
+      msg_array.push("Obtained WebGPU context for canvas");
     }
 
-    // 6. Obtener formato
+    // Get the best pixel format
     const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
 
-    // 7. Configurar contexto
+    // Configure the context with the device and format
     context.configure({
-        device,
-        format: canvasFormat,
-        alphaMode: "opaque",
+      device: device,
+      format: canvasFormat,
     });
 
-    console.log("WebGPU initialized!");
+    // Display messages
+    for (var i = 0; i < msg_array.length; i++) {
+      document.write(msg_array[ i ] + "<br /><br />");
+    }
+  }
 
-    return {
-        adapter,
-        device,
-        context,
-        canvasFormat,
-    };
-}
-
-// 8. Ejecutar aplicación
-async function main() {
-
-    const { device, context } = await initWebGPU();
-
-    // 9. Crear Command Encoder
-    const encoder = device.createCommandEncoder();
-
-    // 10. Crear Render Pass
-    const pass = encoder.beginRenderPass({
-        colorAttachments: [
-            {
-                view: context.getCurrentTexture().createView(),
-                clearValue: {
-                    r: 0.1,
-                    g: 0.2,
-                    b: 0.4,
-                    a: 1.0,
-                },
-                loadOp: "clear",
-                storeOp: "store",
-            },
-        ],
-    });
-
-    // 11. Finalizar Render Pass
-    pass.end();
-
-    // 12. Finalizar comandos
-    const commandBuffer = encoder.finish();
-
-    // 13. Enviar comandos a la GPU
-    device.queue.submit([commandBuffer]);
-
-    console.log("GPU rendering completed!");
-}
-
-main().catch(console.error);
+    // Run example function
+runExample();
